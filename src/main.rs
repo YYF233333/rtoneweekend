@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use rand::random;
-use vec3::{Color, Point3};
+use vec3::Point3;
 
 use crate::{color::write_color, vec3::Vec3};
 use camera::*;
@@ -32,7 +32,7 @@ fn main() {
 
     // World
 
-    let world = test_scene();
+    let world = test_scene_metal();
 
     // Camera
 
@@ -67,8 +67,9 @@ fn main() {
                     cam.get_ray(u, v)
                 })
                 .collect();
-            let pixel_color = ray_color(rays, &world, max_depth)
+            let pixel_color = rays
                 .into_iter()
+                .map(|r| ray_color_default(r, &world, max_depth))
                 .reduce(|acc, x| acc + x)
                 .unwrap();
             write_color(&mut std::io::stdout(), pixel_color, samples_per_pixel).unwrap();

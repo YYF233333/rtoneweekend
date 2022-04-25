@@ -3,7 +3,6 @@ use std::f32::INFINITY;
 use crate::hittable::Hittable;
 use crate::ray::Ray;
 use crate::vec3::{unit, Color};
-use arrayfire::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub fn ray_color(rays: Vec<Ray>, world: &impl Hittable, depth: i32) -> Vec<Color> {
@@ -33,11 +32,11 @@ pub fn ray_color(rays: Vec<Ray>, world: &impl Hittable, depth: i32) -> Vec<Color
                             // in debug mode, when exceed the bounce limit, return RED for clearer visualization
                             return final_color * Color::new(1., 0., 0.);
                         } else {
-                            return final_color * Color::new(0., 0., 0.);
+                            return Color::default();
                         }
                     }
                 } else {
-                    return final_color * Color::default();
+                    return Color::default();
                 }
             }
 

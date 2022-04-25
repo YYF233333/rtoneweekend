@@ -1,44 +1,41 @@
 use std::f32::INFINITY;
 
 use crate::hittable::Hittable;
-use crate::ray::Ray;
+use crate::ray::{self, Ray};
 use crate::vec3::{unit, Color};
 use arrayfire::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub fn ray_color(rays: Vec<Ray>, world: &impl Hittable, depth: i32) -> Vec<Color> {
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    if depth <= 0 {
+        if cfg!(debug_assertions) {
+            // in debug mode, when exceed the bounce limit, return RED for clearer visualization
+            return vec![Color::new(1., 0., 0.); rays.len()];
+        } else {
+            return vec![Color::new(0., 0., 0.); rays.len()];
+        }
+    }
     rays.into_par_iter()
         .map(|r| {
-            // If we've exceeded the ray bounce limit, no more light is gathered.
-            if depth <= 0 {
-                if cfg!(debug_assertions) {
-                    // in debug mode, when exceed the bounce limit, return RED for clearer visualization
-                    return Color::new(1., 0., 0.);
-                } else {
-                    return Color::new(0., 0., 0.);
+            let mut final_color = Color::new(1.0, 1.0, 1.0);
+            let mut cur_ray = r;
+            for _ in 0..depth {
+                if let Some(rec) = world.hit(cur_ray, 0.001, INFINITY) {
+                    if let Some((attenuation, scattered)) =
+                        rec.material.clone().scatter(cur_ray, rec)
+                    {
+                        final_color = final_color * attenuation;
+                        cur_ray = scattered;
+                    } else {
+                        final_color = Color::default();
+                    }
                 }
             }
 
-            let mut final_color = Color::new(1.0, 1.0, 1.0);
-            let mut remain_depth = depth;
-            let mut cur_ray = r;
-            while let Some(rec) = world.hit(cur_ray, 0.001, INFINITY) {
-                if let Some((attenuation, scattered)) = rec.material.clone().scatter(cur_ray, rec) {
-                    final_color = final_color * attenuation;
-                    cur_ray = scattered;
-                    remain_depth -= 1;
-                    // If we've exceeded the ray bounce limit, no more light is gathered.
-                    if remain_depth <= 0 {
-                        if cfg!(debug_assertions) {
-                            // in debug mode, when exceed the bounce limit, return RED for clearer visualization
-                            return final_color * Color::new(1., 0., 0.);
-                        } else {
-                            return final_color * Color::new(0., 0., 0.);
-                        }
-                    }
-                } else {
-                    return final_color * Color::default();
-                }
+            // If we've exceeded the ray bounce limit, no more light is gathered.
+            if let Some(_) = world.hit(cur_ray, 0.001, INFINITY) {
+                return Color::default();
             }
 
             let unit_direction = unit(cur_ray.direction());

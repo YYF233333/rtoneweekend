@@ -37,6 +37,38 @@ pub fn test_scene() -> HittableList {
     world
 }
 
+pub fn test_scene_metal() -> HittableList {
+    let mut world = HittableList::new();
+    let ground_material = Arc::new(TestMaterial::new(Color::new(0.5, 0.5, 0.5)));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., -1000., 0.),
+        1000.0,
+        ground_material,
+    )));
+
+    let albedo = Color::new(0.6, 0.7, 0.8);
+    let fuzz = 0.3;
+    let sphere_material = Arc::new(Metal::new(albedo, fuzz));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 1., 0.),
+        1.0,
+        sphere_material.clone(),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(-4., 1., 0.),
+        1.0,
+        sphere_material.clone(),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(4., 1., 0.),
+        1.0,
+        sphere_material,
+    )));
+
+    world
+}
+
 pub fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 

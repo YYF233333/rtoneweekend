@@ -19,6 +19,14 @@ impl Vec3 {
         Self { x, y, z }
     }
 
+    pub fn ident() -> Self {
+        Self {
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+        }
+    }
+
     pub fn x(&self) -> f32 {
         self.x
     }
